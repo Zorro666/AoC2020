@@ -1,14 +1,15 @@
-﻿using NUnit.Framework;
-
+﻿using Xunit;
 namespace Day08
 {
-    [TestFixture]
+
     public class Tests
     {
-        [Test]
+        [Theory]
+        [InlineData(10)]
         public void Day08(int expected)
         {
-            Assert.Fail();
+            Assert.NotEqual(expected, expected);
+
         }
     }
 }
