@@ -14,9 +14,24 @@ namespace Day01
 675,
 1456
             }, 514579)]
-        public void Day01(int[] values, int expected)
+        public void SumTwo(int[] values, int expected)
         {
-            Assert.Equal(expected, Program.Part1(values));
+            Assert.Equal(expected, Program.SumTwo(2020, values));
+        }
+
+        [Theory]
+        [InlineData(new int[]
+    {
+1721,
+979,
+366,
+299,
+675,
+1456
+            }, 241861950)]
+        public void SumThree(int[] values, int expected)
+        {
+            Assert.Equal(expected, Program.SumThree(2020, values));
         }
     }
 }
