@@ -72,9 +72,9 @@ namespace Day02
             }
             else
             {
-                var result2 = -666;
+                var result2 = Part2(lines);
                 Console.WriteLine($"Day02 : Result2 {result2}");
-                var expected = -123;
+                var expected = 346;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -87,20 +87,35 @@ namespace Day02
             var count = 0;
             foreach (var rule in rules)
             {
-                count += ValidPassword(rule);
+                count += ValidPassword1(rule);
             }
             return count;
         }
 
-        public static int ValidPassword(string rule)
+        private static int Part2(string[] rules)
+        {
+            var count = 0;
+            foreach (var rule in rules)
+            {
+                count += ValidPassword2(rule);
+            }
+            return count;
+        }
+
+        public static void ParseRule(string rule, out int min, out int max, out char character, out string password)
         {
             // '1-3 a: abcde'
             var tokens = rule.Split();
             var minMaxTokens = tokens[0].Split('-');
-            var min = int.Parse(minMaxTokens[0]);
-            var max = int.Parse(minMaxTokens[1]);
-            var character = tokens[1].Trim(':')[0];
-            var password = tokens[2].Trim();
+            min = int.Parse(minMaxTokens[0]);
+            max = int.Parse(minMaxTokens[1]);
+            character = tokens[1].Trim(':')[0];
+            password = tokens[2].Trim();
+        }
+
+        public static int ValidPassword1(string rule)
+        {
+            ParseRule(rule, out int min, out int max, out char character, out string password);
             var count = 0;
             foreach (var c in password)
             {
@@ -118,6 +133,14 @@ namespace Day02
                 return 0;
             }
             return 1;
+        }
+
+        public static int ValidPassword2(string rule)
+        {
+            ParseRule(rule, out int min, out int max, out char character, out string password);
+            var foundMin = password[min - 1] == character;
+            var foundMax = password[max - 1] == character;
+            return foundMin ^ foundMax ? 1 : 0;
         }
 
         public static void Run()
