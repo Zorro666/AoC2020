@@ -95,7 +95,7 @@ namespace Day03
 
             if (part1)
             {
-                var result1 = Part1(3, 1);
+                var result1 = CountTrees(3, 1);
                 Console.WriteLine($"Day03 : Result1 {result1}");
                 var expected = 153;
                 if (result1 != expected)
@@ -105,9 +105,9 @@ namespace Day03
             }
             else
             {
-                var result2 = -666;
+                var result2 = Part2();
                 Console.WriteLine($"Day03 : Result2 {result2}");
-                var expected = -123;
+                var expected = 2421944712;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -140,16 +140,28 @@ namespace Day03
             sWidth = width0;
         }
 
-        public static int Part1(int dx, int dy)
+        public static int CountTrees(int dx, int dy)
         {
             var count = 0;
             var x = 0;
-            for (var y = 1; y < sHeight; ++y)
+            for (var y = 0; y < sHeight;)
             {
-                x += 3;
+                x += dx;
+                y += dy;
                 x %= sWidth;
                 count += sTrees[y, x];
             }
+            return count;
+        }
+
+        public static long Part2()
+        {
+            long count = 1;
+            count *= CountTrees(1, 1);
+            count *= CountTrees(3, 1);
+            count *= CountTrees(5, 1);
+            count *= CountTrees(7, 1);
+            count *= CountTrees(1, 2);
             return count;
         }
 
