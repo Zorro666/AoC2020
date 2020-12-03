@@ -5,11 +5,23 @@ namespace Day03
     public class Tests
     {
         [Theory]
-        [InlineData(10)]
-        public void Day03(int expected)
+        [InlineData(new string[] {
+"..##.......",
+"#...#...#..",
+".#....#..#.",
+"..#.#...#.#",
+".#...##..#.",
+"..#.##.....",
+".#.#.#....#",
+".#........#",
+"#.##...#...",
+"#...##....#",
+".#..#...#.#"
+        }, 3, 1, 7)]
+        public void Part1(string[] lines, int dx, int dy, int expected)
         {
-            Assert.NotEqual(expected, expected);
-
+            Program.Parse(lines);
+            Assert.Equal(expected, Program.Part1(dx, dy));
         }
     }
 }
