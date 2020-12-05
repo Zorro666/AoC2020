@@ -81,7 +81,7 @@ namespace Day05
             {
                 var result1 = Part1(lines);
                 Console.WriteLine($"Day05 : Result1 {result1}");
-                var expected = -123;
+                var expected = 959;
                 if (result1 != expected)
                 {
                     throw new InvalidProgramException($"Part1 is broken {result1} != {expected}");
@@ -91,7 +91,7 @@ namespace Day05
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day55 : Result2 {result2}");
-                var expected = -123;
+                var expected = 527;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -112,7 +112,30 @@ namespace Day05
 
         private static int Part2(string[] lines)
         {
-            throw new NotImplementedException();
+            const int maxID = 127 * 8 + 7;
+            var usedIDs = new int[maxID];
+            foreach (var line in lines)
+            {
+                var id = DecodePass(line, out int _, out int _);
+                usedIDs[id] = 1;
+            }
+            for (var i = 1; i < maxID - 1; ++i)
+            {
+                if (usedIDs[i] == 1)
+                {
+                    continue;
+                }
+                if (usedIDs[i - 1] == 0)
+                {
+                    continue;
+                }
+                if (usedIDs[i + 1] == 0)
+                {
+                    continue;
+                }
+                return i;
+            }
+            throw new InvalidProgramException($"Could not find the empty id");
         }
 
         public static int DecodePass(in string pass, out int row, out int column)
@@ -137,10 +160,6 @@ namespace Day05
             min = 0;
             for (var i = 7; i < 10; ++i)
             {
-                // Start by considering the whole range, columns 0 through 7.
-                // R means to take the upper half, keeping columns 4 through 7.
-                // L means to take the lower half, keeping columns 4 through 5.
-                // The final R keeps the upper of the two, column 5.
                 var c = pass[i];
                 var delta = (max - min + 1) >> 1;
                 if (c == 'L')
