@@ -5,11 +5,13 @@ namespace Day05
     public class Tests
     {
         [Theory]
-        [InlineData(10)]
-        public void Day05(int expected)
+        [InlineData("FBFBBFFRLR", 44, 5, 357)]
+        public void DecodePass(string pass, int expectedRow, int expectedColumn, int expectedID)
         {
-            Assert.NotEqual(expected, expected);
-
+            var id = Program.DecodePass(pass, out int row, out int column);
+            Assert.Equal(expectedRow, row);
+            Assert.Equal(expectedColumn, column);
+            Assert.Equal(expectedID, id);
         }
     }
 }
