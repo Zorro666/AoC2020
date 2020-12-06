@@ -79,6 +79,7 @@ a
 a
 
 b
+
 This list represents answers from five groups:
 
 In the first group, everyone (all 1 person) answered "yes" to 3 questions: a, b, and c.
@@ -88,8 +89,10 @@ In the fourth group, everyone answered yes to only 1 question, a.
 In the fifth group, everyone (all 1 person) answered "yes" to 1 question, b.
 In this example, the sum of these counts is 3 + 0 + 1 + 1 + 1 = 6.
 
-For each group, count the number of questions to which everyone answered "yes". What is the sum of those counts?
-throw new NotImplementedException();
+For each group, count the number of questions to which everyone answered "yes".
+
+What is the sum of those counts?
+
 */
 
 namespace Day06
@@ -114,7 +117,7 @@ namespace Day06
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day06 : Result2 {result2}");
-                var expected = -123;
+                var expected = 3351;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -155,9 +158,46 @@ namespace Day06
             return total;
         }
 
-        private static int Part2(string[] lines)
+        public static int Part2(string[] lines)
         {
-            throw new NotImplementedException();
+            var total = 0;
+            var votersCount = 0;
+            var questionCounts = new int[26];
+            var answered = new bool[26];
+
+            foreach (var line in lines)
+            {
+                var l = line.Trim();
+                if (l.Length == 0)
+                {
+                    for (var i = 0; i < 26; ++i)
+                    {
+                        if (questionCounts[i] == votersCount)
+                        {
+                            ++total;
+                        }
+                        answered[i] = false;
+                        questionCounts[i] = 0;
+                    }
+                    votersCount = 0;
+                    continue;
+                }
+                foreach (var c in l)
+                {
+                    var q = c - 'a';
+                    answered[q] = true;
+                    ++questionCounts[q];
+                }
+                ++votersCount;
+            }
+            for (var i = 0; i < 26; ++i)
+            {
+                if (questionCounts[i] == votersCount)
+                {
+                    ++total;
+                }
+            }
+            return total;
         }
 
         public static void Run()
