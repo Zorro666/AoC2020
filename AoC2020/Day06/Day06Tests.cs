@@ -5,10 +5,25 @@ namespace Day06
     public class Tests
     {
         [Theory]
-        [InlineData(10)]
-        public void Day06(int expected)
+        [InlineData(new string[] {
+"abc",
+"",
+"a",
+"b",
+"c",
+"",
+"ab",
+"ac",
+"",
+"a",
+"a",
+"a",
+"a",
+"",
+"b"}, 11)]
+        public void Part1(string[] lines, int expected)
         {
-            Assert.NotEqual(expected, expected);
+            Assert.Equal(expected, Program.Part1(lines));
 
         }
     }
