@@ -81,6 +81,7 @@ namespace Day07
         static string[] sBags = new string[MAX_COUNT_BAGS];
         static int[] sSubBagsCount = new int[MAX_COUNT_BAGS];
         static string[,] sSubBags = new string[MAX_COUNT_BAGS, MAX_COUNT_SUBBAGS];
+        static int[,] sSubBagAmounts = new int[MAX_COUNT_BAGS, MAX_COUNT_SUBBAGS];
         static int sBagCount = 0;
 
         private Program(string inputFile, bool part1)
@@ -101,7 +102,7 @@ namespace Day07
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day07 : Result2 {result2}");
-                var expected = -123;
+                var expected = 12414;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -141,6 +142,7 @@ namespace Day07
                             innerBag += tokens[i];
                             innerBag += " ";
                         }
+                        sSubBagAmounts[bag, subBag] = int.Parse(tokens[0]);
                         sSubBags[bag, subBag] = innerBag.Trim();
                         ++subBag;
                     }
@@ -188,14 +190,38 @@ namespace Day07
                             }
                         }
                     }
+                    return false;
                 }
             }
-            return false;
+            throw new InvalidProgramException($"Bag {bagName} not found");
+        }
+
+        private static int SubBagCount(string bagName)
+        {
+            var total = 1;
+            for (var b = 0; b < sBagCount; ++b)
+            {
+                if (sBags[b] == bagName)
+                {
+                    var childCount = sSubBagsCount[b];
+                    for (var child = 0; child < childCount; ++child)
+                    {
+                        var innerBag = sSubBags[b, child];
+                        total += sSubBagAmounts[b, child] * SubBagCount(innerBag);
+                    }
+                    return total;
+                }
+            }
+            throw new InvalidProgramException($"Bag {bagName} not found");
         }
 
         public static int Part2(string[] lines)
         {
-            throw new NotImplementedException();
+            Parse(lines);
+            var total = 0;
+            total += SubBagCount("shiny gold");
+            total -= 1;
+            return total;
         }
 
         public static void Run()
