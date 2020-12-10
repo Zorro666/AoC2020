@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 /*
 
@@ -100,7 +101,9 @@ Your puzzle answer was 1856.
 
 --- Part Two ---
 
-To completely determine whether you have enough adapters, you'll need to figure out how many different ways they can be arranged. Every arrangement needs to connect the charging outlet to your device. The previous rules about when adapters can successfully connect still apply.
+To completely determine whether you have enough adapters, you'll need to figure out how many different ways they can be arranged.
+Every arrangement needs to connect the charging outlet to your device.
+The previous rules about when adapters can successfully connect still apply.
 
 The first example above (the one that starts with 16, 10, 15) supports the following arrangements:
 
@@ -112,9 +115,12 @@ The first example above (the one that starts with 16, 10, 15) supports the follo
 (0), 1, 4, 6, 7, 10, 12, 15, 16, 19, (22)
 (0), 1, 4, 7, 10, 11, 12, 15, 16, 19, (22)
 (0), 1, 4, 7, 10, 12, 15, 16, 19, (22)
-(The charging outlet and your device's built-in adapter are shown in parentheses.) Given the adapters from the first example, the total number of arrangements that connect the charging outlet to your device is 8.
 
-The second example above (the one that starts with 28, 33, 18) has many arrangements. Here are a few:
+(The charging outlet and your device's built-in adapter are shown in parentheses.)
+Given the adapters from the first example, the total number of arrangements that connect the charging outlet to your device is 8.
+
+The second example above (the one that starts with 28, 33, 18) has many arrangements.
+Here are a few:
 
 (0), 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18, 19, 20, 23, 24, 25, 28, 31,
 32, 33, 34, 35, 38, 39, 42, 45, 46, 47, 48, 49, (52)
@@ -145,9 +151,12 @@ The second example above (the one that starts with 28, 33, 18) has many arrangem
 
 (0), 3, 4, 7, 10, 11, 14, 17, 20, 23, 25, 28, 31, 34, 35, 38, 39, 42, 45,
 48, 49, (52)
+
 In total, this set of adapters can connect the charging outlet to your device in 19208 distinct arrangements.
 
-You glance back down at your bag and try to remember why you brought so many adapters; there must be more than a trillion valid ways to arrange them! Surely, there must be an efficient way to count the arrangements.
+You glance back down at your bag and try to remember why you brought so many adapters; there must be more than a trillion valid ways to arrange them!
+
+Surely, there must be an efficient way to count the arrangements.
 
 What is the total number of distinct ways you can arrange the adapters to connect the charging outlet to your device?
 
@@ -157,6 +166,11 @@ namespace Day10
 {
     class Program
     {
+        const int MAX_ADAPTER_COUNT = 1024;
+        static int sAdapterCount;
+        static readonly int[] sAdapters = new int[MAX_ADAPTER_COUNT];
+        static readonly Dictionary<int, long> sCombinations = new Dictionary<int, long>(128 * 1024);
+
         private Program(string inputFile, bool part1)
         {
             var lines = AoC.Program.ReadLines(inputFile);
@@ -175,7 +189,7 @@ namespace Day10
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day10 : Result2 {result2}");
-                var expected = -123;
+                var expected = 2314037239808L;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -183,21 +197,25 @@ namespace Day10
             }
         }
 
+        private static void Parse(string[] lines)
+        {
+            sAdapterCount = lines.Length;
+            for (var a = 0; a < sAdapterCount; ++a)
+            {
+                sAdapters[a] = int.Parse(lines[a]);
+            }
+            Array.Sort(sAdapters, 0, sAdapterCount);
+        }
+
         public static int Part1(string[] lines)
         {
-            var adapterCount = lines.Length;
-            var adapters = new int[adapterCount];
-            for (var a = 0; a < adapterCount; ++a)
-            {
-                adapters[a] = int.Parse(lines[a]);
-            }
-            Array.Sort(adapters);
+            Parse(lines);
             var oneVoltCount = 0;
             var threeVoltCount = 0;
             var currentVolt = 0;
-            for (var a = 0; a < adapterCount; ++a)
+            for (var a = 0; a < sAdapterCount; ++a)
             {
-                var adapter = adapters[a];
+                var adapter = sAdapters[a];
                 if ((currentVolt + 1) == adapter)
                 {
                     ++oneVoltCount;
@@ -219,9 +237,42 @@ namespace Day10
             return oneVoltCount * threeVoltCount;
         }
 
-        public static int Part2(string[] lines)
+        private static long Combinations(int value, int start)
         {
-            throw new NotImplementedException($"");
+            if (start == sAdapterCount)
+            {
+                return 1;
+            }
+
+            if (sCombinations.ContainsKey(value))
+            {
+                return sCombinations[value];
+            }
+
+            var total = 0L;
+            for (var i = start; i < sAdapterCount; ++i)
+            {
+                var newValue = sAdapters[i];
+                if ((newValue - value) <= 3)
+                {
+                    var subTotal = Combinations(newValue, i + 1);
+                    sCombinations[newValue] = subTotal;
+                    total += subTotal;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return total;
+        }
+
+        public static long Part2(string[] lines)
+        {
+            Parse(lines);
+            sCombinations.Clear();
+            var combinationCount = Combinations(0, 0);
+            return combinationCount;
         }
 
         public static void Run()
