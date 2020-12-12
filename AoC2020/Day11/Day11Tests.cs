@@ -34,7 +34,7 @@ namespace Day11
 "LLLLLLLLLL",
 "L.LLLLLL.L",
 "L.LLLLL.LL"
-        }, 37)]
+        }, 26)]
         public void Part2(string[] lines, int expected)
         {
             Assert.Equal(expected, Program.Part2(lines));

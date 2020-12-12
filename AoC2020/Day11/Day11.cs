@@ -101,12 +101,143 @@ Simulate your seating area by applying the seating rules repeatedly until no sea
 
 How many seats end up occupied?
 
+Your puzzle answer was 2265.
+
+--- Part Two ---
+
+As soon as people start to arrive, you realize your mistake.
+People don't just care about adjacent seats - they care about the first seat they can see in each of those eight directions!
+
+Now, instead of considering just the eight immediately adjacent seats, consider the first seat in each of those eight directions.
+For example, the empty seat below would see eight occupied seats:
+
+.......#.
+...#.....
+.#.......
+.........
+..#L....#
+....#....
+.........
+#........
+...#.....
+
+The leftmost empty seat below would only see one empty seat, but cannot see any of the occupied ones:
+
+.............
+.L.L.#.#.#.#.
+.............
+
+The empty seat below would see no occupied seats:
+
+.##.##.
+#.#.#.#
+##...##
+...L...
+##...##
+#.#.#.#
+.##.##.
+
+Also, people seem to be more tolerant than you expected: 
+it now takes five or more visible occupied seats for an occupied seat to become empty (rather than four or more from the previous rules).
+
+The other rules still apply: 
+empty seats that see no occupied seats become occupied, 
+seats matching no rule don't change, and floor never changes.
+
+Given the same starting layout as above, these new rules cause the seating area to shift around as follows:
+
+L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL
+#.##.##.##
+#######.##
+#.#.#..#..
+####.##.##
+#.##.##.##
+#.#####.##
+..#.#.....
+##########
+#.######.#
+#.#####.##
+#.LL.LL.L#
+#LLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLL#
+#.LLLLLL.L
+#.LLLLL.L#
+#.L#.##.L#
+#L#####.LL
+L.#.#..#..
+##L#.##.##
+#.##.#L.##
+#.#####.#L
+..#.#.....
+LLL####LL#
+#.L#####.L
+#.L####.L#
+#.L#.L#.L#
+#LLLLLL.LL
+L.L.L..#..
+##LL.LL.L#
+L.LL.LL.L#
+#.LLLLL.LL
+..L.L.....
+LLLLLLLLL#
+#.LLLLL#.L
+#.L#LL#.L#
+#.L#.L#.L#
+#LLLLLL.LL
+L.L.L..#..
+##L#.#L.L#
+L.L#.#L.L#
+#.L####.LL
+..#.#.....
+LLL###LLL#
+#.LLLLL#.L
+#.L#LL#.L#
+#.L#.L#.L#
+#LLLLLL.LL
+L.L.L..#..
+##L#.#L.L#
+L.L#.LL.L#
+#.LLLL#.LL
+..#.L.....
+LLL###LLL#
+#.LLLLL#.L
+#.L#LL#.L#
+
+Again, at this point, people stop shifting around and the seating area reaches equilibrium.
+
+Once this occurs, you count 26 occupied seats.
+
+Given the new visibility method and the rule change for occupied seats becoming empty, once equilibrium is reached, how many seats end up occupied?
+
 */
 
 namespace Day11
 {
     class Program
     {
+        const int MAX_WIDTH = 1024;
+        const int MAX_HEIGHT = 1024;
+        const int SEAT_EMPTY = 0;
+        const int SEAT_OCCUPIED = 1;
+        const int SEAT_FLOOR = 2;
+        static int sWidth;
+        static int sHeight;
+        static int[,] sGrid = new int[MAX_HEIGHT, MAX_WIDTH];
+
         private Program(string inputFile, bool part1)
         {
             var lines = AoC.Program.ReadLines(inputFile);
@@ -115,7 +246,7 @@ namespace Day11
             {
                 var result1 = Part1(lines);
                 Console.WriteLine($"Day11 : Result1 {result1}");
-                var expected = -123;
+                var expected = 2265;
                 if (result1 != expected)
                 {
                     throw new InvalidProgramException($"Part1 is broken {result1} != {expected}");
@@ -125,7 +256,7 @@ namespace Day11
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day11 : Result2 {result2}");
-                var expected = -123;
+                var expected = 2045;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -133,14 +264,155 @@ namespace Day11
             }
         }
 
+        private static void Parse(string[] lines)
+        {
+            sWidth = lines[0].Trim().Length;
+            sHeight = lines.Length;
+            for (var y = 0; y < sHeight; ++y)
+            {
+                var line = lines[y].Trim();
+                var width = line.Length;
+                if (width != sWidth)
+                {
+                    throw new InvalidProgramException($"Width must be constant {width} != {sWidth} Line {y}");
+                }
+                for (var x = 0; x < width; ++x)
+                {
+                    var c = line[x];
+                    if (c == 'L')
+                    {
+                        sGrid[y, x] = SEAT_EMPTY;
+                    }
+                    else if (c == '#')
+                    {
+                        sGrid[y, x] = SEAT_OCCUPIED;
+                    }
+                    else if (c == '.')
+                    {
+                        sGrid[y, x] = SEAT_FLOOR;
+                    }
+                    else
+                    {
+                        throw new InvalidProgramException($"Invalid space '{c}' {x},{y}");
+                    }
+                }
+            }
+        }
+
+        private static int OccupiedAlongRay(int x0, int y0, int dx, int dy, int maxRayLength)
+        {
+            var x = x0;
+            var y = y0;
+            for (var i = 0; i < maxRayLength; ++i)
+            {
+                x += dx;
+                y += dy;
+                if ((y >= 0) && (y < sHeight) && (x >= 0) && (x < sWidth))
+                {
+                    var c = sGrid[y, x];
+                    if (c == SEAT_OCCUPIED)
+                    {
+                        return 1;
+                    }
+                    else if (c == SEAT_EMPTY)
+                    {
+                        return 0;
+                    }
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            return 0;
+        }
+        private static int CountOccupied(int x, int y, int maxRayLength)
+        {
+            var count = 0;
+            count += OccupiedAlongRay(x, y, -1, -1, maxRayLength);
+            count += OccupiedAlongRay(x, y, +0, -1, maxRayLength);
+            count += OccupiedAlongRay(x, y, +1, -1, maxRayLength);
+
+            count += OccupiedAlongRay(x, y, -1, +0, maxRayLength);
+            count += OccupiedAlongRay(x, y, +1, +0, maxRayLength);
+
+            count += OccupiedAlongRay(x, y, -1, +1, maxRayLength);
+            count += OccupiedAlongRay(x, y, +0, +1, maxRayLength);
+            count += OccupiedAlongRay(x, y, +1, +1, maxRayLength);
+            return count;
+        }
+
+        private static int Simulate(int rayLength, int maxOccupied)
+        {
+            const int MAX_CYCLES = 1024;
+            var newGrid = new int[sHeight, sWidth];
+            for (var i = 0; i < MAX_CYCLES; ++i)
+            {
+                var changed = false;
+                var occupiedCount = 0;
+                for (var y = 0; y < sHeight; ++y)
+                {
+                    for (var x = 0; x < sWidth; ++x)
+                    {
+                        // Floor never changes
+                        var c = sGrid[y, x];
+                        var newValue = c;
+                        if (c != SEAT_FLOOR)
+                        {
+                            var occ = CountOccupied(x, y, rayLength);
+                            //If a seat is empty (L) and there are no occupied seats adjacent to it, the seat becomes occupied.
+                            //If a seat is occupied (#) and four or more seats adjacent to it are also occupied, the seat becomes empty.
+                            if (c == SEAT_EMPTY)
+                            {
+                                if (occ == 0)
+                                {
+                                    newValue = SEAT_OCCUPIED;
+                                }
+                            }
+                            else if (c == SEAT_OCCUPIED)
+                            {
+                                if (occ >= maxOccupied)
+                                {
+                                    newValue = SEAT_EMPTY;
+                                }
+                            }
+                        }
+                        if (newValue != c)
+                        {
+                            changed = true;
+                        }
+                        if (newValue == SEAT_OCCUPIED)
+                        {
+                            ++occupiedCount;
+                        }
+                        newGrid[y, x] = newValue;
+                    }
+                }
+                if (!changed)
+                {
+                    return occupiedCount;
+                }
+                for (var y = 0; y < sHeight; ++y)
+                {
+                    for (var x = 0; x < sWidth; ++x)
+                    {
+                        sGrid[y, x] = newGrid[y, x];
+                    }
+                }
+            }
+            throw new InvalidProgramException($"Simulation not stable after {MAX_CYCLES} iterations");
+        }
+
         public static int Part1(string[] lines)
         {
-            throw new NotImplementedException();
+            Parse(lines);
+            return Simulate(1, 4);
         }
 
         public static int Part2(string[] lines)
         {
-            throw new NotImplementedException();
+            Parse(lines);
+            return Simulate(sWidth + sHeight, 5);
         }
 
         public static void Run()
