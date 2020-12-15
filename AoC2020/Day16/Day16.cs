@@ -34,6 +34,16 @@ namespace Day16
             }
         }
 
+        public static int Part1(string[] lines)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static int Part2(string[] lines)
+        {
+            throw new NotImplementedException();
+        }
+
         public static void Run()
         {
             Console.WriteLine("Day16 : Start");
