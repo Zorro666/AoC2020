@@ -126,7 +126,7 @@ namespace Day16
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day16 : Result2 {result2}");
-                var expected = -123;
+                var expected = 21095351239483;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -140,6 +140,8 @@ namespace Day16
             var myTicket = 0;
             var nearbyTickets = 0;
             var invalidTotal = 0;
+            sCountParameters = 0;
+            sCountValidTickets = 0;
             foreach (var l in lines)
             {
                 var line = l.Trim();
@@ -222,7 +224,7 @@ namespace Day16
                     {
                         throw new InvalidProgramException($"Expected '{sCountParameters}' values got '{tokens.Length}' Line '{line}'");
                     }
-                    var validTicket = false;
+                    var validTicket = true;
                     for (var p = 0; p < sCountParameters; ++p)
                     {
                         var validParam = false;
@@ -231,15 +233,10 @@ namespace Day16
                         {
                             var min = sRangeOneMins[j];
                             var max = sRangeOneMaxs[j];
-                            if ((value >= min) && (value <= max))
+                            if (IsValid(value, j))
                             {
                                 validParam = true;
-                            }
-                            min = sRangeTwoMins[j];
-                            max = sRangeTwoMaxs[j];
-                            if ((value >= min) && (value <= max))
-                            {
-                                validParam = true;
+                                break;
                             }
                         }
                         if (!validParam)
@@ -255,8 +252,8 @@ namespace Day16
                         {
                             var value = int.Parse(tokens[p]);
                             sValidTicketParams[p, sCountValidTickets] = value;
-                            ++sCountValidTickets;
                         }
+                        ++sCountValidTickets;
                     }
                 }
                 else
@@ -272,9 +269,115 @@ namespace Day16
             return Parse(lines);
         }
 
-        public static int Part2(string[] lines)
+        private static bool IsValid(int value, int paramIndex)
         {
-            throw new NotImplementedException();
+            var min = sRangeOneMins[paramIndex];
+            var max = sRangeOneMaxs[paramIndex];
+            if ((value >= min) && (value <= max))
+            {
+                return true;
+            }
+            min = sRangeTwoMins[paramIndex];
+            max = sRangeTwoMaxs[paramIndex];
+            if ((value >= min) && (value <= max))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public static long Part2(string[] lines)
+        {
+            Parse(lines);
+            var ticketParamMapping = new int[sCountParameters];
+            var paramToTicketMapping = new int[sCountParameters];
+            for (var p = 0; p < sCountParameters; ++p)
+            {
+                ticketParamMapping[p] = -1;
+                paramToTicketMapping[p] = -1;
+            }
+
+            var countNeeded = 0;
+            for (var p = 0; p < sCountParameters; ++p)
+            {
+                if (sRangeNames[p].StartsWith("departure", StringComparison.Ordinal))
+                {
+                    ++countNeeded;
+                }
+            }
+            var countFound = 0;
+            while (true)
+            {
+                for (var ticketParamIndex = 0; ticketParamIndex < sCountParameters; ++ticketParamIndex)
+                {
+                    if (ticketParamMapping[ticketParamIndex] != -1)
+                    {
+                        continue;
+                    }
+                    var countMatches = new int[sCountParameters];
+                    for (var paramIndex = 0; paramIndex < sCountParameters; ++paramIndex)
+                    {
+                        if (paramToTicketMapping[paramIndex] != -1)
+                        {
+                            continue;
+                        }
+                        var valid = true;
+                        if (!IsValid(sMyTicketParams[ticketParamIndex], paramIndex))
+                        {
+                            break;
+                        }
+                        for (var ticket = 0; ticket < sCountValidTickets; ++ticket)
+                        {
+                            var ticketValue = sValidTicketParams[ticketParamIndex, ticket];
+                            if (!IsValid(ticketValue, paramIndex))
+                            {
+                                valid = false;
+                                break;
+                            }
+                        }
+                        if (valid)
+                        {
+                            ++countMatches[paramIndex];
+                        }
+                    }
+                    var mappedParamIndex = -1;
+                    var validMatches = 0;
+                    for (var paramIndex = 0; paramIndex < sCountParameters; ++paramIndex)
+                    {
+                        if (countMatches[paramIndex] == 1)
+                        {
+                            mappedParamIndex = paramIndex;
+                            ++validMatches;
+                        }
+                    }
+
+                    if (validMatches == 1)
+                    {
+                        ticketParamMapping[ticketParamIndex] = mappedParamIndex;
+                        paramToTicketMapping[mappedParamIndex] = ticketParamIndex;
+                        var mapping = ticketParamMapping[ticketParamIndex];
+                        Console.WriteLine($"Ticket Param[{ticketParamIndex}] maps to {mapping} '{sRangeNames[mapping]}'");
+                        if (sRangeNames[mappedParamIndex].StartsWith("departure", StringComparison.Ordinal))
+                        {
+                            ++countFound;
+                        }
+                    }
+                }
+                if (countFound == countNeeded)
+                {
+                    break;
+                }
+            }
+            var total = 1L;
+            for (var p = 0; p < sCountParameters; ++p)
+            {
+                if (sRangeNames[p].StartsWith("departure", StringComparison.Ordinal))
+                {
+                    var ticketParam = paramToTicketMapping[p];
+                    total *= sMyTicketParams[ticketParam];
+                }
+            }
+            return total;
         }
 
         public static void Run()

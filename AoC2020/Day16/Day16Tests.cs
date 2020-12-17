@@ -27,18 +27,19 @@ namespace Day16
 
         [Theory]
         [InlineData(new string[] {
+"departure location: 32-174 or 190-967",
 "class: 0-1 or 4-19",
 "row: 0-5 or 8-19",
 "seat: 0-13 or 16-19",
 "",
 "your ticket:",
-"11,12,13",
+"11,12,13,200",
 "",
 "nearby tickets:",
-"3,9,18",
-"15,1,5",
-"5,14,9"
-        }, 10)]
+"3,9,18,200",
+"15,1,5,200",
+"5,14,9,200"
+        }, 200)]
         public void Part2(string[] lines, int expected)
         {
             Assert.Equal(expected, Program.Part2(lines));
