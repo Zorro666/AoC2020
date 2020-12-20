@@ -81,6 +81,7 @@ namespace Day18
         private static int sValuesStackCount;
         private static readonly char[] sOperatorsStack = new char[MAX_COUNT_ITEMS];
         private static int sOperatorsStackCount;
+        private static bool sPart1 = false;
 
         private Program(string inputFile, bool part1)
         {
@@ -100,7 +101,7 @@ namespace Day18
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day18 : Result2 {result2}");
-                var expected = -123;
+                var expected = 351175492232654L;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");
@@ -210,7 +211,7 @@ namespace Day18
             ++sValuesStackCount;
         }
 
-        private static long EvaluatePart2(ref int pos, string line)
+        private static long Evaluate(string line)
         {
             sValuesStackCount = 0;
             sOperatorsStackCount = 0;
@@ -220,10 +221,9 @@ namespace Day18
                 sValuesStack[i] = long.MinValue;
             }
 
-            while (pos < line.Length)
+            for (var pos = 0; pos < line.Length; ++pos)
             {
                 var c = line[pos];
-                ++pos;
                 if (c == ' ')
                 {
                     continue;
@@ -248,20 +248,25 @@ namespace Day18
                 }
                 else if (c == '+')
                 {
-                    // If current top of the stack operator is '+' apply it now
-                    if ((sOperatorsStackCount > 0) && (sOperatorsStack[sOperatorsStackCount - 1] == '+'))
+                    if (sOperatorsStackCount > 0)
                     {
-                        PopAndApplyOperator();
+                        var headOperator = sOperatorsStack[sOperatorsStackCount - 1];
+                        if ((headOperator == '+') || (sPart1 && headOperator == '*'))
+                        {
+                            PopAndApplyOperator();
+                        }
                     }
-                    // Push '+' operator (highest precedence)
                     PushOperator(c);
                 }
                 else if (c == '*')
                 {
-                    // If current top of the stack operator is '+' apply it now
-                    if ((sOperatorsStackCount > 0) && (sOperatorsStack[sOperatorsStackCount - 1] == '+'))
+                    if (sOperatorsStackCount > 0)
                     {
-                        PopAndApplyOperator();
+                        var headOperator = sOperatorsStack[sOperatorsStackCount - 1];
+                        if ((headOperator == '+') || (sPart1 && headOperator == '*'))
+                        {
+                            PopAndApplyOperator();
+                        }
                     }
                     PushOperator(c);
                 }
@@ -279,24 +284,32 @@ namespace Day18
 
         public static long Part1(string[] lines)
         {
+            sPart1 = true;
             var total = 0L;
+            var total2 = 0L;
             foreach (var l in lines)
             {
                 var pos = 0;
                 var line = l.Trim();
                 total += EvaluatePart1(ref pos, line);
+                total2 += Evaluate(line);
+                if (total != total2)
+                {
+                    throw new InvalidProgramException($"Old way not matching new way");
+                }
             }
+
             return total;
         }
 
         public static long Part2(string[] lines)
         {
+            sPart1 = false;
             var total = 0L;
             foreach (var l in lines)
             {
-                var pos = 0;
                 var line = l.Trim();
-                total += EvaluatePart2(ref pos, line);
+                total += Evaluate(line);
             }
             return total;
         }

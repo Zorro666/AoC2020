@@ -36,7 +36,7 @@ namespace Day18
 "(7 * 5 * 7 + 2)"
         }, 247)]
         [InlineData(new string[] {
-"(9 * 3))"
+"(9 * 3)"
         }, 27)]
         [InlineData(new string[] {
 "(4 * 4 + (7 * 5 * 7 + 2) + (9 * 3))"
@@ -48,7 +48,7 @@ namespace Day18
 "(6 + 7 * 8 + 9 + 6 + 3)"
         }, 122)]
         [InlineData(new string[] {
-"(3 * 9 + 7 + 6 + 5 + 8))"
+"(3 * 9 + 7 + 6 + 5 + 8)"
         }, 53)]
         [InlineData(new string[] {
 "(5 + (4 + 2 + 8) + (9 * 7 * 4) + 3)"
