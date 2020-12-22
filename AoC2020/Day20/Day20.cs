@@ -178,6 +178,112 @@ If you do this with the assembled tiles from the example above, you get 1951 * 3
 Assemble the tiles into an image.
 What do you get if you multiply together the IDs of the four corner tiles?
 
+Your puzzle answer was 59187348943703.
+
+--- Part Two ---
+
+Now, you're ready to check the image for sea monsters.
+
+The borders of each tile are not part of the actual image; start by removing them.
+
+In the example above, the tiles become:
+
+.#.#..#. ##...#.# #..#####
+###....# .#....#. .#......
+##.##.## #.#.#..# #####...
+###.#### #...#.## ###.#..#
+##.#.... #.##.### #...#.##
+...##### ###.#... .#####.#
+....#..# ...##..# .#.###..
+.####... #..#.... .#......
+
+#..#.##. .#..###. #.##....
+#.####.. #.####.# .#.###..
+###.#.#. ..#.#### ##.#..##
+#.####.. ..##..## ######.#
+##..##.# ...#...# .#.#.#..
+...#..#. .#.#.##. .###.###
+.#.#.... #.##.#.. .###.##.
+###.#... #..#.##. ######..
+
+.#.#.### .##.##.# ..#.##..
+.####.## #.#...## #.#..#.#
+..#.#..# ..#.#.#. ####.###
+#..####. ..#.#.#. ###.###.
+#####..# ####...# ##....##
+#.##..#. .#...#.. ####...#
+.#.###.. ##..##.. ####.##.
+...###.. .##...#. ..#..###
+
+Remove the gaps to form the actual image:
+
+.#.#..#.##...#.##..#####
+###....#.#....#..#......
+##.##.###.#.#..######...
+###.#####...#.#####.#..#
+##.#....#.##.####...#.##
+...########.#....#####.#
+....#..#...##..#.#.###..
+.####...#..#.....#......
+#..#.##..#..###.#.##....
+#.####..#.####.#.#.###..
+###.#.#...#.######.#..##
+#.####....##..########.#
+##..##.#...#...#.#.#.#..
+...#..#..#.#.##..###.###
+.#.#....#.##.#...###.##.
+###.#...#..#.##.######..
+.#.#.###.##.##.#..#.##..
+.####.###.#...###.#..#.#
+..#.#..#..#.#.#.####.###
+#..####...#.#.#.###.###.
+#####..#####...###....##
+#.##..#..#...#..####...#
+.#.###..##..##..####.##.
+...###...##...#...#..###
+
+Now, you're ready to search for sea monsters! 
+Because your image is monochrome, a sea monster will look like this:
+
+                  # 
+#    ##    ##    ###
+ #  #  #  #  #  #   
+
+When looking for this pattern in the image, the spaces can be anything; only the # need to match.
+Also, you might need to rotate or flip your image before it's oriented correctly to find sea monsters.
+In the above image, after flipping and rotating it to the appropriate orientation, there are two sea monsters (marked with O):
+
+.####...#####..#...###..
+#####..#..#.#.####..#.#.
+.#.#...#.###...#.##.O#..
+#.O.##.OO#.#.OO.##.OOO##
+..#O.#O#.O##O..O.#O##.##
+...#.#..##.##...#..#..##
+#.##.#..#.#..#..##.#.#..
+.###.##.....#...###.#...
+#.####.#.#....##.#..#.#.
+##...#..#....#..#...####
+..#.##...###..#.#####..#
+....#.##.#.#####....#...
+..##.##.###.....#.##..#.
+#...#...###..####....##.
+.#.##...#.##.#.#.###...#
+#.###.#..####...##..#...
+#.###...#.##...#.##O###.
+.O##.#OO.###OO##..OOO##.
+..O#.O..O..O.#O##O##.###
+#.#..##.########..#..##.
+#.#####..#.#...##..#....
+#....##..#.#########..##
+#...#.....#..##...###.##
+#..###....##.#...##.##.#
+
+Determine how rough the waters are in the sea monsters' habitat by counting the number of # that are not part of a sea monster.
+
+In the above example, the habitat's water roughness is 273.
+
+How many # are not part of a sea monster?
+
 */
 
 namespace Day20
@@ -210,7 +316,7 @@ namespace Day20
             {
                 var result1 = Part1(lines);
                 Console.WriteLine($"Day20 : Result1 {result1}");
-                var expected = -123;
+                var expected = 59187348943703;
                 if (result1 != expected)
                 {
                     throw new InvalidProgramException($"Part1 is broken {result1} != {expected}");
@@ -402,15 +508,16 @@ namespace Day20
             {
                 var edgeCounts = new int[MAX_COUNT_EDGES];
                 var totalEdges = 0;
-                for (var e = 0; e < MAX_COUNT_EDGES; ++e)
+                for (var t2 = 0; t2 < sCountTiles; ++t2)
                 {
-                    var fromEdge = sTileEdges[e, t];
-                    for (var t2 = 0; t2 < sCountTiles; ++t2)
+                    if (t2 == t)
                     {
-                        if (t2 == t)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
+                    var matched = false;
+                    for (var e = 0; e < MAX_COUNT_EDGES; ++e)
+                    {
+                        var fromEdge = sTileEdges[e, t];
                         for (var e2 = 0; e2 < MAX_COUNT_EDGES; ++e2)
                         {
                             var toEdge = sTileEdges[e2, t2];
@@ -418,15 +525,21 @@ namespace Day20
                             {
                                 ++edgeCounts[e];
                                 ++totalEdges;
+                                matched = true;
+                                break;
                             }
+                        }
+                        if (matched)
+                        {
+                            break;
                         }
                     }
                 }
-                if (totalEdges < 4)
+                if (totalEdges < 2)
                 {
                     throw new InvalidProgramException($"Not enough edges match {totalEdges} tile {sTileIDs[t]}");
                 }
-                if (totalEdges == 4)
+                if (totalEdges == 2)
                 {
                     result *= sTileIDs[t];
                     Console.WriteLine($"Found edge tile {sTileIDs[t]}");
