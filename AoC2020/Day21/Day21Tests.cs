@@ -5,10 +5,15 @@ namespace Day21
     public class Tests
     {
         [Theory]
-        [InlineData(10)]
-        public void Day21(int expected)
+        [InlineData(new string[] {
+"mxmxvkd kfcds sqjhc nhms (contains dairy, fish)",
+"trh fvjkl sbzzf mxmxvkd (contains dairy)",
+"sqjhc fvjkl (contains soy)",
+"sqjhc mxmxvkd sbzzf (contains fish)"
+        }, 5)]
+        public void Part1(string[] lines, int expected)
         {
-            Assert.NotEqual(expected, expected);
+            Assert.Equal(expected, Program.Part1(lines));
 
         }
     }
