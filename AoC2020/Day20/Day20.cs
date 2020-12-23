@@ -290,23 +290,32 @@ namespace Day20
 {
     class Program
     {
-        const int EDGE_TOP = 0;
-        const int EDGE_BOTTOM = 1;
-        const int EDGE_LEFT = 2;
-        const int EDGE_RIGHT = 3;
-        const int EDGE_TOP_FLIP = 4;
-        const int EDGE_BOTTOM_FLIP = 5;
-        const int EDGE_LEFT_FLIP = 6;
-        const int EDGE_RIGHT_FLIP = 7;
-        const int MAX_DIMENSION = 16;
-        const int MAX_COUNT_TILES = 256;
-        const int MAX_COUNT_EDGES = 8;
+        const uint EDGE_TOP = 0;
+        const uint EDGE_BOTTOM = 1;
+        const uint EDGE_LEFT = 2;
+        const uint EDGE_RIGHT = 3;
+        const uint EDGE_TOP_FLIP = 4;
+        const uint EDGE_BOTTOM_FLIP = 5;
+        const uint EDGE_LEFT_FLIP = 6;
+        const uint EDGE_RIGHT_FLIP = 7;
+
+        const uint MAX_DIMENSION = 16;
+        const uint MAX_COUNT_GRIDSIZE = 16;
+        const uint MAX_COUNT_TILES = MAX_COUNT_GRIDSIZE * MAX_COUNT_GRIDSIZE;
+        const uint MAX_COUNT_EDGES = 8;
+        const uint MAX_COUNT_LINKS = 4;
+
         static readonly byte[,,] sTiles = new byte[MAX_DIMENSION, MAX_DIMENSION, MAX_COUNT_TILES];
-        static int sCountTiles;
-        static int sTileWidth;
-        static int sTileHeight;
+        static uint sGridSize;
+        static uint sCountTiles;
+        static uint sTileWidth;
+        static uint sTileHeight;
         static readonly long[] sTileIDs = new long[MAX_COUNT_TILES];
+        static readonly uint[] sTileXY = new uint[MAX_COUNT_TILES];
         static readonly uint[,] sTileEdges = new uint[MAX_COUNT_EDGES, MAX_COUNT_TILES];
+        static readonly uint[,] sTileValidLinks = new uint[MAX_COUNT_LINKS, MAX_COUNT_TILES];
+        static readonly uint[] sTileCountValidLinks = new uint[MAX_COUNT_TILES];
+        static readonly uint[,] sJigsaw = new uint[MAX_COUNT_GRIDSIZE, MAX_COUNT_GRIDSIZE];
 
         private Program(string inputFile, bool part1)
         {
@@ -334,14 +343,72 @@ namespace Day20
             }
         }
 
+        private static uint GetRow(int tileIndex, uint row)
+        {
+            var result = 0U;
+            for (var x = 0; x < sTileWidth; ++x)
+            {
+                result <<= 1;
+                if (sTiles[x, row, tileIndex] == 1)
+                {
+                    result |= 1;
+                }
+            }
+            return result;
+        }
+
+        private static uint GetColumn(int tileIndex, uint column)
+        {
+            var result = 0U;
+            for (var y = 0; y < sTileHeight; ++y)
+            {
+                result <<= 1;
+                if (sTiles[column, y, tileIndex] == 1)
+                {
+                    result |= 1;
+                }
+            }
+            return result;
+        }
+
+        private static uint GetRowFlipped(int tileIndex, uint row)
+        {
+            var result = 0U;
+            for (var i = 0; i < sTileWidth; ++i)
+            {
+                var x = sTileWidth - 1 - i;
+                result <<= 1;
+                if (sTiles[x, row, tileIndex] == 1)
+                {
+                    result |= 1;
+                }
+            }
+            return result;
+        }
+
+        private static uint GetColumnFlipped(int tileIndex, uint column)
+        {
+            var result = 0U;
+            for (var i = 0; i < sTileHeight; ++i)
+            {
+                var y = sTileHeight - 1 - i;
+                result <<= 1;
+                if (sTiles[column, y, tileIndex] == 1)
+                {
+                    result |= 1;
+                }
+            }
+            return result;
+        }
+
         private static void Parse(string[] lines)
         {
             var expectID = true;
-            var y = 0;
+            var y = 0U;
             sCountTiles = 0;
-            var tileIndex = -1;
-            sTileHeight = int.MinValue;
-            sTileWidth = int.MinValue;
+            var tileIndex = uint.MaxValue;
+            sTileHeight = uint.MaxValue;
+            sTileWidth = uint.MaxValue;
             foreach (var l in lines)
             {
                 /*
@@ -381,7 +448,7 @@ namespace Day20
                 }
                 else
                 {
-                    sTileWidth = line.Length;
+                    sTileWidth = (uint)line.Length;
                     for (var x = 0; x < line.Length; ++x)
                     {
                         var c = line[x];
@@ -405,76 +472,17 @@ namespace Day20
             {
                 throw new InvalidProgramException($"Bad width & height {sTileWidth} != {sTileHeight}");
             }
-        }
 
-        private static uint GetRow(int tileIndex, int row)
-        {
-            var result = 0U;
-            for (var x = 0; x < sTileWidth; ++x)
+            sGridSize = (uint)Math.Sqrt((double)sCountTiles);
+            if ((sGridSize * sGridSize) != sCountTiles)
             {
-                result <<= 1;
-                if (sTiles[x, row, tileIndex] == 1)
-                {
-                    result |= 1;
-                }
+                throw new InvalidProgramException($"Expected square input {sCountTiles} gridSize {sGridSize}");
             }
-            return result;
-        }
 
-        private static uint GetColumn(int tileIndex, int column)
-        {
-            var result = 0U;
-            for (var y = 0; y < sTileHeight; ++y)
-            {
-                result <<= 1;
-                if (sTiles[column, y, tileIndex] == 1)
-                {
-                    result |= 1;
-                }
-            }
-            return result;
-        }
-
-        private static uint GetRowFlipped(int tileIndex, int row)
-        {
-            var result = 0U;
-            for (var x = sTileWidth - 1; x >= 0; --x)
-            {
-                result <<= 1;
-                if (sTiles[x, row, tileIndex] == 1)
-                {
-                    result |= 1;
-                }
-            }
-            return result;
-        }
-
-        private static uint GetColumnFlipped(int tileIndex, int column)
-        {
-            var result = 0U;
-            for (var y = sTileHeight - 1; y >= 0; --y)
-            {
-                result <<= 1;
-                if (sTiles[column, y, tileIndex] == 1)
-                {
-                    result |= 1;
-                }
-            }
-            return result;
-        }
-
-        public static long Part1(string[] lines)
-        {
-            Parse(lines);
-            int gridSize = (int)Math.Sqrt((double)sCountTiles);
-            if ((gridSize * gridSize) != sCountTiles)
-            {
-                throw new InvalidProgramException($"Expected square input {sCountTiles} gridSize {gridSize}");
-            }
-            /*
-                Each tile => get 8 edges :
-			    top, bottom, left, right, flipTop, flipBottom, flipLeft, flipRight
-            */
+            // 8 edges for each tile : top, bottom, left, right, flipTop, flipBottom, flipLeft, flipRight
+            var countCorners = 0;
+            var countEdges = 0;
+            var countMiddles = 0;
             for (var t = 0; t < sCountTiles; ++t)
             {
                 sTileEdges[EDGE_TOP, t] = GetRow(t, 0);
@@ -485,9 +493,224 @@ namespace Day20
                 sTileEdges[EDGE_BOTTOM_FLIP, t] = GetRowFlipped(t, sTileHeight - 1);
                 sTileEdges[EDGE_LEFT_FLIP, t] = GetColumnFlipped(t, 0);
                 sTileEdges[EDGE_RIGHT_FLIP, t] = GetColumnFlipped(t, sTileWidth - 1);
+                sTileCountValidLinks[t] = 0;
+                sTileXY[t] = uint.MaxValue;
             }
 
-            // Edge tile only matches: BR, BL, TR, TL
+            for (uint t = 0; t < sCountTiles; ++t)
+            {
+                for (uint t2 = 0; t2 < sCountTiles; ++t2)
+                {
+                    if (t2 == t)
+                    {
+                        continue;
+                    }
+                    var matched = false;
+                    for (var e = 0; e < MAX_COUNT_EDGES; ++e)
+                    {
+                        var fromEdge = sTileEdges[e, t];
+                        for (uint e2 = 0; e2 < MAX_COUNT_EDGES; ++e2)
+                        {
+                            var toEdge = sTileEdges[e2, t2];
+                            if (fromEdge == toEdge)
+                            {
+                                sTileValidLinks[sTileCountValidLinks[t], t] = t2;
+                                ++sTileCountValidLinks[t];
+                                matched = true;
+                                break;
+                            }
+                        }
+                        if (matched)
+                        {
+                            break;
+                        }
+                    }
+                }
+                // Corner tiles only have 2 links
+                if (sTileCountValidLinks[t] == 2)
+                {
+                    ++countCorners;
+                }
+                // Edge tiles only have 3 links
+                else if (sTileCountValidLinks[t] == 3)
+                {
+                    ++countEdges;
+                }
+                // Middle tiles only have 4 links
+                else if (sTileCountValidLinks[t] == 4)
+                {
+                    ++countMiddles;
+                }
+                else
+                {
+                    throw new InvalidProgramException($"Invalid number of links {sTileCountValidLinks[t]} tile {sTileIDs[t]}");
+                }
+            }
+
+            var expected = 4U;
+            if (countCorners != expected)
+            {
+                throw new InvalidProgramException($"Invalid number of Corners {countCorners} expected {expected}");
+            }
+            expected = (sGridSize - 2) * 4;
+            if (countEdges != expected)
+            {
+                throw new InvalidProgramException($"Invalid number of Edges {countEdges} expected {expected}");
+            }
+            expected = (sGridSize - 2) * (sGridSize - 2);
+            if (countMiddles != expected)
+            {
+                throw new InvalidProgramException($"Invalid number of Middles {countMiddles} expected {expected}");
+            }
+            for (y = 0; y < MAX_COUNT_GRIDSIZE; ++y)
+            {
+                for (var x = 0; x < MAX_COUNT_GRIDSIZE; ++x)
+                {
+                    sJigsaw[x, y] = MAX_COUNT_TILES;
+                }
+            }
+            // Construct the jigsaw
+            // Corner tiles have 2 links
+            // Edge tiles have 3 links
+            // Middle tiles have 4 links
+
+            /*
+            C00-E10-C20
+             |   |   |
+            E01-M11-E21
+             |   |   |
+            C02-E12-C22
+            */
+
+            for (y = 0; y < sGridSize; ++y)
+            {
+                for (uint x = 0; x < sGridSize; ++x)
+                {
+                    var countLinks = 4U;
+                    if ((x == 0) && ((y == 0) || (y == sGridSize - 1)))
+                    {
+                        countLinks = 2;
+                    }
+                    else if ((x == sGridSize - 1) && ((y == 0) || (y == sGridSize - 1)))
+                    {
+                        countLinks = 2;
+                    }
+                    else if ((x == 0) || (y == 0) || (x == sGridSize - 1) || (y == sGridSize - 1))
+                    {
+                        countLinks = 3;
+                    }
+                    var tile = FindMatchingTile(x, y, countLinks);
+                    sJigsaw[x, y] = tile;
+                    sTileXY[tile] = x + y * MAX_COUNT_GRIDSIZE;
+                }
+            }
+
+            OutputJigsaw();
+        }
+
+        private static uint FindMatchingTile(uint x, uint y, uint countLinks)
+        {
+            // x-1, y+0
+            uint id0 = (x > 0) ? sJigsaw[x - 1, y] : MAX_COUNT_TILES;
+            // x+1, y+0
+            uint id1 = (x < (sGridSize - 1)) ? sJigsaw[x + 1, y] : MAX_COUNT_TILES;
+            // x+0, y-1
+            uint id2 = (y > 0) ? sJigsaw[x, y - 1] : MAX_COUNT_TILES;
+            // x+0, y+1
+            uint id3 = (y < (sGridSize - 1)) ? sJigsaw[x, y + 1] : MAX_COUNT_TILES;
+            for (uint t = 0; t < sCountTiles; ++t)
+            {
+                if (sTileCountValidLinks[t] != countLinks)
+                {
+                    continue;
+                }
+                if (sTileXY[t] < uint.MaxValue)
+                {
+                    continue;
+                }
+                var foundLinks = new bool[4];
+                var countFoundLinks = 0;
+                if (id0 >= sCountTiles)
+                {
+                    foundLinks[0] = true;
+                    ++countFoundLinks;
+                }
+                if (id1 >= sCountTiles)
+                {
+                    foundLinks[1] = true;
+                    ++countFoundLinks;
+                }
+                if (id2 >= sCountTiles)
+                {
+                    foundLinks[2] = true;
+                    ++countFoundLinks;
+                }
+                if (id3 >= sCountTiles)
+                {
+                    foundLinks[3] = true;
+                    ++countFoundLinks;
+                }
+                for (var l = 0; l < sTileCountValidLinks[t]; ++l)
+                {
+                    var link = sTileValidLinks[l, t];
+                    if ((id0 < sCountTiles) && (link == id0))
+                    {
+                        foundLinks[0] = true;
+                        ++countFoundLinks;
+                    }
+                    else if ((id1 < sCountTiles) && (link == id1))
+                    {
+                        foundLinks[1] = true;
+                        ++countFoundLinks;
+                    }
+                    else if ((id2 < sCountTiles) && (link == id2))
+                    {
+                        foundLinks[2] = true;
+                        ++countFoundLinks;
+                    }
+                    else if ((id3 < sCountTiles) && (link == id3))
+                    {
+                        foundLinks[3] = true;
+                        ++countFoundLinks;
+                    }
+                }
+                if (countFoundLinks == 4)
+                {
+                    return t;
+                }
+            }
+            throw new InvalidProgramException($"Failed to find matching tile");
+        }
+
+        private static void OutputJigsaw()
+        {
+            for (var y = 0; y < sGridSize; ++y)
+            {
+                for (var x = 0; x < sGridSize; ++x)
+                {
+                    var tile = sJigsaw[x, y];
+                    var tileID = tile < MAX_COUNT_TILES ? sTileIDs[tile] : 0000;
+                    Console.Write($"{tileID} ");
+                }
+                Console.WriteLine($"");
+            }
+        }
+
+        public static long Part1(string[] lines)
+        {
+            Parse(lines);
+            var result = 1L;
+            result *= sTileIDs[sJigsaw[0, 0]];
+            result *= sTileIDs[sJigsaw[sGridSize - 1, 0]];
+            result *= sTileIDs[sJigsaw[0, sGridSize - 1]];
+            result *= sTileIDs[sJigsaw[sGridSize - 1, sGridSize - 1]];
+            return result;
+        }
+
+        public static long Part2(string[] lines)
+        {
+            Parse(lines);
+            // Corner tile only matches: BR, BL, TR, TL
             // 90 rotate
             // T = L flipped
             // B = R flipped
@@ -503,54 +726,6 @@ namespace Day20
             // B = L
             // L = T flipped 
             // R = B flipped
-            var result = 1L;
-            for (var t = 0; t < sCountTiles; ++t)
-            {
-                var edgeCounts = new int[MAX_COUNT_EDGES];
-                var totalEdges = 0;
-                for (var t2 = 0; t2 < sCountTiles; ++t2)
-                {
-                    if (t2 == t)
-                    {
-                        continue;
-                    }
-                    var matched = false;
-                    for (var e = 0; e < MAX_COUNT_EDGES; ++e)
-                    {
-                        var fromEdge = sTileEdges[e, t];
-                        for (var e2 = 0; e2 < MAX_COUNT_EDGES; ++e2)
-                        {
-                            var toEdge = sTileEdges[e2, t2];
-                            if (fromEdge == toEdge)
-                            {
-                                ++edgeCounts[e];
-                                ++totalEdges;
-                                matched = true;
-                                break;
-                            }
-                        }
-                        if (matched)
-                        {
-                            break;
-                        }
-                    }
-                }
-                if (totalEdges < 2)
-                {
-                    throw new InvalidProgramException($"Not enough edges match {totalEdges} tile {sTileIDs[t]}");
-                }
-                if (totalEdges == 2)
-                {
-                    result *= sTileIDs[t];
-                    Console.WriteLine($"Found edge tile {sTileIDs[t]}");
-                }
-            }
-            return result;
-        }
-
-        public static long Part2(string[] lines)
-        {
-            Parse(lines);
             throw new NotImplementedException();
         }
 
