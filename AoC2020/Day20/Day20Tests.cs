@@ -230,7 +230,7 @@ namespace Day20
 "..#.......",
 "..#.###...",
 ""
-        }, 20899048083289)]
+        }, 273)]
         public void Part2(string[] lines, long expected)
         {
             Assert.Equal(expected, Program.Part2(lines));
