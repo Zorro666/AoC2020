@@ -73,13 +73,39 @@ namespace Day21
             }
         }
 
+        private static void Parse(string[] lines)
+        {
+            // mxmxvkd kfcds sqjhc nhms (contains dairy, fish)
+            // trh fvjkl sbzzf mxmxvkd (contains dairy)
+            // sqjhc fvjkl (contains soy)
+            // sqjhc mxmxvkd sbzzf (contains fish)
+            foreach (var l in lines)
+            {
+                var line = l.Trim();
+                var tokens = line.Split('(');
+                var ingrediants = tokens[0].Trim().Split();
+                foreach (var ingrediant in ingrediants)
+                {
+                    Console.WriteLine($"{ingrediant} ");
+                }
+                var allergens = tokens[1].TrimEnd(')').Split();
+                for (var a = 1; a < allergens.Length; ++a)
+                {
+                    var allergen = allergens[a].Trim().TrimEnd(',');
+                    Console.WriteLine($"{allergen} ");
+                }
+            }
+        }
+
         public static int Part1(string[] lines)
         {
+            Parse(lines);
             throw new NotImplementedException();
         }
 
         public static int Part2(string[] lines)
         {
+            Parse(lines);
             throw new NotImplementedException();
         }
 
