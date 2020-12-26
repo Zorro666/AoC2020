@@ -16,5 +16,18 @@ namespace Day21
             Assert.Equal(expected, Program.Part1(lines));
 
         }
+
+        [Theory]
+        [InlineData(new string[] {
+"mxmxvkd kfcds sqjhc nhms (contains dairy, fish)",
+"trh fvjkl sbzzf mxmxvkd (contains dairy)",
+"sqjhc fvjkl (contains soy)",
+"sqjhc mxmxvkd sbzzf (contains fish)"
+        }, "mxmxvkd,sqjhc,fvjkl")]
+        public void Part2(string[] lines, string expected)
+        {
+            Assert.Equal(expected, Program.Part2(lines));
+
+        }
     }
 }
