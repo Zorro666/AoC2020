@@ -22,7 +22,7 @@ namespace Day22
         }, 306)]
         public void Day22(string[] lines, int expected)
         {
-            Assert.NotEqual(expected, Program.Part1(lines));
+            Assert.Equal(expected, Program.Part1(lines));
 
         }
     }
