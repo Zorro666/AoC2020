@@ -414,11 +414,23 @@ namespace Day22
     {
         const int MAX_COUNT_PLAYERS = 2;
         const int MAX_COUNT_CARDS = 64;
+        const int MAX_COUNT_PREVIOUS_ROUNDS = 1024;
+        const int MAX_COUNT_RECURSION_DEPTH = 32;
 
-        static readonly int[,] sCards = new int[MAX_COUNT_CARDS, MAX_COUNT_PLAYERS];
-        static readonly int[] sCardsEnd = new int[MAX_COUNT_PLAYERS];
-        static readonly int[] sCardsStart = new int[MAX_COUNT_PLAYERS];
         static int sCountPlayers = 0;
+        static int sRecursionDepth = 0;
+
+        //static readonly int[,] sCards = new int[MAX_COUNT_CARDS, MAX_COUNT_PLAYERS];
+        //static readonly int[] sCardsEnd = new int[MAX_COUNT_PLAYERS];
+        //static readonly int[] sCardsStart = new int[MAX_COUNT_PLAYERS];
+        //static readonly int[] sCountCards = new int[MAX_COUNT_PLAYERS];
+
+        static readonly int[,,,] sPreviousCards = new int[MAX_COUNT_CARDS, MAX_COUNT_PREVIOUS_ROUNDS, MAX_COUNT_RECURSION_DEPTH, MAX_COUNT_PLAYERS];
+        static readonly int[,,] sCountPreviousCards = new int[MAX_COUNT_PREVIOUS_ROUNDS, MAX_COUNT_RECURSION_DEPTH, MAX_COUNT_PLAYERS];
+        static readonly int[] sCountPreviousRounds = new int[MAX_COUNT_RECURSION_DEPTH];
+
+        static readonly int[,,] sCurrentCards = new int[MAX_COUNT_CARDS, MAX_COUNT_RECURSION_DEPTH, MAX_COUNT_PLAYERS];
+        static readonly int[,] sCountCurrentCards = new int[MAX_COUNT_RECURSION_DEPTH, MAX_COUNT_PLAYERS];
 
         private Program(string inputFile, bool part1)
         {
@@ -449,7 +461,8 @@ namespace Day22
         private static void Parse(string[] lines)
         {
             sCountPlayers = 0;
-            var countCards = -1;
+            sRecursionDepth = 0;
+            var depth = sRecursionDepth;
             var player = -1;
             foreach (var l in lines)
             {
@@ -457,16 +470,14 @@ namespace Day22
                 if (line == "Player 1:")
                 {
                     player = sCountPlayers;
-                    countCards = 0;
-                    sCardsStart[player] = 0;
+                    sCountCurrentCards[depth, player] = 0;
                     ++sCountPlayers;
                     continue;
                 }
                 else if (line == "Player 2:")
                 {
                     player = sCountPlayers;
-                    countCards = 0;
-                    sCardsStart[player] = 0;
+                    sCountCurrentCards[depth, player] = 0;
                     ++sCountPlayers;
                     continue;
                 }
@@ -475,33 +486,42 @@ namespace Day22
                     continue;
                 }
                 var card = int.Parse(line);
-                sCards[countCards, player] = card;
-                ++countCards;
-                sCardsEnd[player] = countCards;
+                AddCard(card, player);
             }
-            for (var p = 0; p < MAX_COUNT_PLAYERS; ++p)
+            if (sCountPlayers != 2)
             {
-                sCardsEnd[player] %= MAX_COUNT_CARDS;
+                throw new InvalidProgramException($"Expected 2 players got {sCountPlayers}");
             }
         }
 
         private static int DrawCard(int player)
         {
-            var deckTop = sCardsStart[player];
-            var card = sCards[deckTop, player];
-            ++sCardsStart[player];
-            sCards[deckTop, player] = -1;
-            sCardsStart[player] %= MAX_COUNT_CARDS;
+            var depth = sRecursionDepth;
+            var countNewCards = sCountCurrentCards[depth, player] - 1;
+            if (countNewCards < 0)
+            {
+                throw new InvalidProgramException($"Player {player} deck is empty, trying to draw a card");
+            }
+            var card = sCurrentCards[0, depth, player];
+            for (var i = 0; i < countNewCards; ++i)
+            {
+                sCurrentCards[i, depth, player] = sCurrentCards[i + 1, depth, player];
+            }
+            sCountCurrentCards[depth, player] = countNewCards;
 
             return card;
         }
 
         private static void AddCard(int card, int player)
         {
-            var place = sCardsEnd[player];
-            sCards[place, player] = card;
-            ++sCardsEnd[player];
-            sCardsEnd[player] %= MAX_COUNT_CARDS;
+            var depth = sRecursionDepth;
+            var place = sCountCurrentCards[depth, player];
+            sCurrentCards[place, depth, player] = card;
+            ++sCountCurrentCards[depth, player];
+            if (sCountCurrentCards[depth, player] > MAX_COUNT_CARDS)
+            {
+                throw new InvalidProgramException($"Player {player} {sCountCurrentCards[depth, player]} deck is full, trying to add a card");
+            }
         }
 
         private static void Round()
@@ -527,32 +547,26 @@ namespace Day22
 
         private static int ComputeScore(int player)
         {
+            var depth = sRecursionDepth;
             var score = 0;
-            var i = sCardsEnd[player] - 1;
+            var i = sCountCurrentCards[depth, player] - 1;
             var worth = 1;
             do
             {
-                score += worth * sCards[i, player];
+                score += worth * sCurrentCards[i, depth, player];
                 ++worth;
-                if (i == sCardsStart[player])
-                {
-                    break;
-                }
                 --i;
-                if (i < 0)
-                {
-                    i = MAX_COUNT_CARDS - 1;
-                }
             }
-            while (i != sCardsEnd[player]);
+            while (i >= 0);
             return score;
         }
 
         private static bool IsGameOver()
         {
-            for (var p = 0; p < sCountPlayers; ++p)
+            var depth = sRecursionDepth;
+            for (var player = 0; player < sCountPlayers; ++player)
             {
-                if (sCardsEnd[p] == sCardsStart[p])
+                if (sCountCurrentCards[depth, player] == 0)
                 {
                     return true;
                 }
@@ -562,14 +576,61 @@ namespace Day22
 
         private static int FindWinner()
         {
-            for (var p = 0; p < sCountPlayers; ++p)
+            var depth = sRecursionDepth;
+            for (var player = 0; player < sCountPlayers; ++player)
             {
-                if (sCardsEnd[p] != sCardsStart[p])
+                if (sCountCurrentCards[depth, player] > 0)
                 {
-                    return p;
+                    return player;
                 }
             }
             throw new InvalidProgramException($"No winner found");
+        }
+
+        private static bool MatchRound(int round)
+        {
+            var depth = sRecursionDepth;
+            for (var player = 0; player < sCountPlayers; ++player)
+            {
+                if (sCountCurrentCards[depth, player] != sCountPreviousCards[round, depth, player])
+                {
+                    return false;
+                }
+                for (var c = 0; c < sCountCurrentCards[depth, player]; ++c)
+                {
+                    if (sCurrentCards[c, depth, player] != sPreviousCards[c, round, depth, player])
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool MatchPreviousRound()
+        {
+            var depth = sRecursionDepth;
+            int round;
+            for (round = 0; round < sCountPreviousRounds[depth]; ++round)
+            {
+                if (MatchRound(round))
+                {
+                    return true;
+                }
+            }
+
+            round = sCountPreviousRounds[depth];
+            for (var player = 0; player < sCountPlayers; ++player)
+            {
+                sCountPreviousCards[round, depth, player] = sCountCurrentCards[depth, player];
+                for (var c = 0; c < sCountCurrentCards[depth, player]; ++c)
+                {
+                    sPreviousCards[c, round, depth, player] = sCurrentCards[c, depth, player];
+                }
+            }
+            ++sCountPreviousRounds[depth];
+
+            return false;
         }
 
         public static int Part1(string[] lines)
@@ -590,14 +651,74 @@ namespace Day22
         public static int Part2(string[] lines)
         {
             Parse(lines);
-            throw new NotImplementedException();
+
+            bool gameOver;
+            int winner = -1;
+            do
+            {
+                var depth = sRecursionDepth;
+                winner = -1;
+                if (MatchPreviousRound())
+                {
+                    winner = 0;
+                    break;
+                }
+                var card1 = DrawCard(0);
+                var card2 = DrawCard(1);
+                // If both players have at least as many cards remaining in their deck as the value of the card they just drew, 
+                // the winner of the round is determined by playing a new game of Recursive Combat
+                var roundWinner = -1;
+                if ((sCountCurrentCards[depth, 0] >= card1) && (sCountCurrentCards[depth, 1] >= card2))
+                {
+                    Console.WriteLine($"Recursive Combat");
+                    roundWinner = 1;
+                }
+                else
+                {
+                    // Else do a normal round
+                    if (card1 > card2)
+                    {
+                        roundWinner = 0;
+                    }
+                    else if (card2 > card1)
+                    {
+                        roundWinner = 1;
+                    }
+                    else
+                    {
+                        throw new InvalidProgramException($"Equal cards {card1} {card2}");
+                    }
+                }
+                if (roundWinner == 0)
+                {
+                    AddCard(card1, 0);
+                    AddCard(card2, 0);
+                }
+                else if (roundWinner == 1)
+                {
+                    AddCard(card2, 1);
+                    AddCard(card1, 1);
+                }
+                else
+                {
+                    throw new InvalidProgramException($"Invalid roundWinner {roundWinner}");
+                }
+                gameOver = IsGameOver();
+            }
+            while (!gameOver);
+
+            if (winner == -1)
+            {
+                winner = FindWinner();
+            }
+            return ComputeScore(winner);
         }
 
         public static void Run()
         {
             Console.WriteLine("Day22 : Start");
             _ = new Program("Day22/input.txt", true);
-            _ = new Program("Day22/input.txt", false);
+
             Console.WriteLine("Day22 : End");
         }
     }
