@@ -41,6 +41,16 @@ namespace Day22
 "7",
 "10"
         }, 291)]
+        [InlineData(new string[] {
+"Player 1:",
+"43",
+"19",
+"",
+"Player 2:",
+"2",
+"29",
+"14"
+        }, 273)]
         public void Part2(string[] lines, int expected)
         {
             Assert.Equal(expected, Program.Part2(lines));
