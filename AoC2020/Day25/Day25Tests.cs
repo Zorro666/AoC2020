@@ -5,10 +5,13 @@ namespace Day25
     public class Tests
     {
         [Theory]
-        [InlineData(10)]
-        public void Day25(int expected)
+        [InlineData(new string[] {
+"5764801",
+"17807724"
+         }, 14897079L)]
+        public void Part1(string[] lines, long expected)
         {
-            Assert.NotEqual(expected, expected);
+            Assert.Equal(expected, Program.Part1(lines));
 
         }
     }
