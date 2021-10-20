@@ -133,7 +133,7 @@ namespace Day03
                 }
                 for (var x = 0; x < width; ++x)
                 {
-                    sTrees[y, x] = line[x] == '#' ? 1 : 0;
+                    sTrees[y, x] = (byte)(line[x] == '#' ? 1 : 0);
                 }
             }
             sHeight = height;

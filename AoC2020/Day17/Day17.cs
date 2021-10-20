@@ -500,7 +500,7 @@ namespace Day17
                 var x = sMinX;
                 for (var c = 0; c < width; ++c)
                 {
-                    sCells[x, y, z, w] = (line[c] == '#') ? 1 : 0;
+                    sCells[x, y, z, w] = (byte)((line[c] == '#') ? 1 : 0);
                     ++x;
                 }
                 ++y;

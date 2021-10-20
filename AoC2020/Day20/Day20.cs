@@ -1257,7 +1257,7 @@ namespace Day20
             {
                 for (var x = 0; x < 20; ++x)
                 {
-                    sSeaMonster[x, y] = seaMonster[y][x] == '#' ? 1 : 0;
+                    sSeaMonster[x, y] = (byte)(seaMonster[y][x] == '#' ? 1 : 0);
                 }
             }
 
