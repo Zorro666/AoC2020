@@ -414,8 +414,8 @@ namespace Day22
     {
         const int MAX_COUNT_PLAYERS = 2;
         const int MAX_COUNT_CARDS = 64;
-        const int MAX_COUNT_PREVIOUS_ROUNDS = 131072;
-        const int MAX_COUNT_RECURSION_DEPTH = 16;
+        const int MAX_COUNT_PREVIOUS_ROUNDS = 131072 * 2;
+        const int MAX_COUNT_RECURSION_DEPTH = 32;
 
         static int sCountGames = 0;
         static int sCountPlayers = 0;
@@ -436,7 +436,7 @@ namespace Day22
             {
                 var result1 = Part1(lines);
                 Console.WriteLine($"Day22 : Result1 {result1}");
-                var expected = 33631;
+                var expected = 31957;
                 if (result1 != expected)
                 {
                     throw new InvalidProgramException($"Part1 is broken {result1} != {expected}");
@@ -446,6 +446,7 @@ namespace Day22
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day22 : Result2 {result2}");
+                // 33072 too low
                 var expected = 33469;
                 if (result2 != expected)
                 {

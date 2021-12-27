@@ -97,7 +97,7 @@ namespace Day03
             {
                 var result1 = CountTrees(3, 1);
                 Console.WriteLine($"Day03 : Result1 {result1}");
-                var expected = 153;
+                var expected = 211;
                 if (result1 != expected)
                 {
                     throw new InvalidProgramException($"Part1 is broken {result1} != {expected}");
@@ -107,7 +107,7 @@ namespace Day03
             {
                 var result2 = Part2();
                 Console.WriteLine($"Day03 : Result2 {result2}");
-                var expected = 2421944712;
+                var expected = 3584591857;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");

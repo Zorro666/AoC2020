@@ -81,7 +81,7 @@ namespace Day05
             {
                 var result1 = Part1(lines);
                 Console.WriteLine($"Day05 : Result1 {result1}");
-                var expected = 959;
+                var expected = 915;
                 if (result1 != expected)
                 {
                     throw new InvalidProgramException($"Part1 is broken {result1} != {expected}");
@@ -91,7 +91,7 @@ namespace Day05
             {
                 var result2 = Part2(lines);
                 Console.WriteLine($"Day55 : Result2 {result2}");
-                var expected = 527;
+                var expected = 699;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");

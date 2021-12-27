@@ -66,7 +66,7 @@ namespace Day01
             {
                 var result1 = Program.SumTwo(sTargetSum, sValues);
                 Console.WriteLine($"Day01 : Result1 {result1}");
-                var expected = 444019;
+                var expected = 800139;
                 if (result1 != expected)
                 {
                     throw new InvalidProgramException($"Part1 is broken {result1} != {expected}");
@@ -76,7 +76,7 @@ namespace Day01
             {
                 var result2 = Program.SumThree(sTargetSum, sValues);
                 Console.WriteLine($"Day01 : Result2 {result2}");
-                var expected = 29212176;
+                var expected = 59885340;
                 if (result2 != expected)
                 {
                     throw new InvalidProgramException($"Part2 is broken {result2} != {expected}");

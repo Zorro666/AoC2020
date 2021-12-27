@@ -6,9 +6,11 @@ namespace AoC
 {
     class Program
     {
+        static bool extraDays = false;
+
         static void RunDay(int requestedDay, int thisDay, Action function)
         {
-            if ((requestedDay == -1) || (requestedDay == thisDay))
+            if ((requestedDay == -1) || (requestedDay == thisDay) || (extraDays && thisDay >= requestedDay))
             {
                 var watch = Stopwatch.StartNew();
                 function();
@@ -31,7 +33,8 @@ namespace AoC
             var day = -1;
             if (args.Length == 1)
             {
-                day = int.Parse(args[0]);
+                extraDays = args[0].EndsWith("+");
+                day = int.Parse(args[0].TrimEnd('+'));
             }
             RunDay(day, 1, Day01.Program.Run);
             RunDay(day, 2, Day02.Program.Run);
